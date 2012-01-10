@@ -10,7 +10,7 @@
  *
  * @author godfred7
  */
-class PrettyExceptions {
+class PrettyException {
 	
 	private static $defaultColours = 
 		array(
