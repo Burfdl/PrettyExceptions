@@ -1,14 +1,9 @@
 <?php
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of Pretty
+ * Class to 
  *
- * @author godfred7
+ * @author David Godfrey <davidmatthewgodfrey@gmail.com>
  */
 class PrettyException {
 	
@@ -155,6 +150,10 @@ class PrettyException {
 	private function stringify($variable) {
 		if (is_null($variable)) {
 			return "NULL";
+		} else if ($variable === false) {
+			return "FALSE";
+		} else if ($variable === true) {
+			return "TRUE";
 		} else if (is_array($variable)) {
 			$array = array();
 			foreach ($variable as $val) {
