@@ -40,7 +40,13 @@ class PrettyException {
 			"<h1>" . get_class($exception) . ": " .$exception->getMessage() 
 			. "</h1>";
 		$returns[] = 
-			"<p>" . $exception->getFile() . "(" . $exception->getLine() 
+			"<p title=\"" . implode(
+				"\n", 
+				$this->pullSnippet(
+					$exception->getFile(), 
+					$exception->getLine()
+				)
+			) . "\">" . $exception->getFile() . "(" . $exception->getLine() 
 			. ")</p>";
 		$returns[] = "<ul>";
 		foreach ($exception->getTrace() as $traceLine) {
@@ -98,12 +104,39 @@ class PrettyException {
 		$returns = array();
 		$returns[] = "<dl>";
 		$returns[] = 
-			"<dt>" . ($class != null ? $this->renderClassName($class) : $class) . $type . $function . "(" 
+			"<dt>" . ($class != null ? $this->renderClassName($class) : $class) 
+			. $type . $function . "(" 
 			. implode(", ", $this->renderArguments($args, $function, $class)) 
 			. ")</dt>";
-		$returns[] = "<dd>" . $file . ":" . $line . "</dd>";
+		$returns[] = "<dd title=\"" . implode("\n", $this->pullSnippet($file, $line)) . "\">" . $file . ":" . $line . "</dd>";
 		$returns[] = "</dl>";
 		return $returns;
+	}
+	
+	private function pullSnippet($file, $line, $height = 7) {
+		$handle = fopen($file, "r");
+		$minLine = $line < $height ? 0 : $line - $height;
+		$maxLine = $line + $height;
+		$returns = array();
+		$i = 0;
+		while (($string = fgets($handle)) !== false && $i++ < $maxLine) {
+			if ($i > $minLine) {
+				if ($i == $line) {
+					$returns[] = "";
+					$returns[] = "";
+				}
+				$returns[] = $i . " " . str_replace(array("\n", "\t"), array("", "  "), $this->htmlEscape($string));
+				if ($i == $line) {
+					$returns[] = "";
+					$returns[] = "";
+				}
+			}
+		}
+		return $returns;
+	}
+	
+	private function htmlEscape($string) {
+		return htmlspecialchars($string, ENT_QUOTES);
 	}
 	
 	private function renderClassName($class) {
@@ -165,7 +198,7 @@ class PrettyException {
 		} else if (is_object($variable)) {
 			return get_class($variable);
 		} else {
-			return "\"" . htmlspecialchars($variable, ENT_QUOTES) . "\"";
+			return "\"" . $this->htmlEscape($variable, ENT_QUOTES) . "\"";
 		}
 	}
 	
